@@ -1,6 +1,6 @@
 ---
 description: Create an isolated git worktree for implementation
-argument-hint: "thoughts/qrspi/<id>/"
+argument-hint: "thoughts/<id>/"
 ---
 
 # Worktree — Isolate the Implementation
@@ -32,14 +32,14 @@ The artifact directory is `$ARGUMENTS`.
    Plan: $ARGUMENTS/plan.md
 
    To implement, run from the worktree:
-     /qrspi/7_implement $ARGUMENTS
+     /implement $ARGUMENTS
 
    Proceed?
    ```
 
 4. **Create the worktree** after user confirms.
 
-5. **Copy QRSPI artifacts** to the worktree. Untracked files from the main tree do not appear in worktrees:
+5. **Copy workflow artifacts** to the worktree. Untracked files from the main tree do not appear in worktrees:
    ```
    cp -r <artifact-directory> ~/wt/<repo-name>/<branch-name>/<artifact-directory>
    ```
@@ -47,7 +47,7 @@ The artifact directory is `$ARGUMENTS`.
 ## Output
 
 - Git worktree created at `~/wt/<repo-name>/<branch-name>`
-- QRSPI artifacts copied to the worktree
+- Workflow artifacts copied to the worktree
 - Tell the user the worktree path and how to start implementation
 
 ## Rules
@@ -58,4 +58,4 @@ The artifact directory is `$ARGUMENTS`.
 
 ## When to Go Back
 
-If the plan doesn't exist yet at `$ARGUMENTS/plan.md`, tell the user to run `/qrspi/5_plan` first.
+If the plan doesn't exist yet at `$ARGUMENTS/plan.md`, tell the user to run `/plan` first.

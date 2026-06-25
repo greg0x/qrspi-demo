@@ -1,7 +1,7 @@
 ---
 description: Objective codebase research driven by questions — facts only, no opinions
-model: opus
-argument-hint: "thoughts/qrspi/<id>/"
+model: claude-legroom-gemini-3-1-flash-lite
+argument-hint: "thoughts/<id>/"
 ---
 
 # Research — Answer the Questions
@@ -57,8 +57,8 @@ Read `$ARGUMENTS/questions.md`. That file is your only input.
 
 ## Output
 
-- File written: `thoughts/qrspi/<id>/research.md`
-- Tell the user: "Next: run `/qrspi/3_design thoughts/qrspi/<id>/`"
+- File written: `thoughts/<id>/research.md`
+- Tell the user: "Next: run `/design thoughts/<id>/`"
 
 ## Rules
 
@@ -72,4 +72,4 @@ Read `$ARGUMENTS/questions.md`. That file is your only input.
 
 ## When to Go Back
 
-If the questions are poorly framed — too vague, targeting the wrong areas, or missing an obvious part of the codebase — tell the user and suggest re-running `/qrspi/1_question` with adjusted input rather than producing weak research.
+If the questions are poorly framed — too vague, targeting the wrong areas, or missing an obvious part of the codebase — tell the user and suggest re-running `/question` with adjusted input rather than producing weak research.

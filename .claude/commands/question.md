@@ -1,7 +1,7 @@
 ---
 description: Decompose a task into neutral research questions
-model: opus
-argument-hint: "<ticket file, issue URL, or task description>"
+model: claude-legroom-gemini-3-1-flash-lite
+argument-hint: "<task description, ticket file, issue URL, or thoughts/<id>/ directory>"
 ---
 
 # Question — Decompose the Task
@@ -12,9 +12,13 @@ Transform a task description into 3-7 specific, neutral research questions. Thes
 
 The user provides a task description, ticket file path, or issue reference.
 
+If `$ARGUMENTS` is an artifact directory, read `$ARGUMENTS/task.md` and `$ARGUMENTS/route.md` if present. Use the existing directory instead of creating a new one.
+
 ## Process
 
 1. **Read any provided files fully** before doing anything else.
+
+   If `route.md` exists, respect its category, selected model, effort, explicit non-goals, and recommended command path. Do not expand the scope beyond that route.
 
 2. **Light codebase exploration**: Spawn a **codebase-locator** agent to find which areas of the codebase relate to the task. You need to know what exists to write good questions.
 
@@ -30,10 +34,11 @@ The user provides a task description, ticket file path, or issue reference.
    Bad: "How should we add a new migration for the users table?"
 
 4. **Determine the artifact directory**:
-   - With ticket number: `thoughts/qrspi/PROJ-1234-brief-description/` (use the project's ticket prefix)
-   - Without ticket: `thoughts/qrspi/YYYY-MM-DD-brief-description/`
+   - With ticket number: `thoughts/PROJ-1234-brief-description/` (use the project's ticket prefix)
+   - Without ticket: `thoughts/YYYY-MM-DD-brief-description/`
+   - With an existing artifact directory argument: use that directory
 
-5. **Create the artifact directory** if it doesn't exist (e.g., `mkdir -p thoughts/qrspi/<id>/`).
+5. **Create the artifact directory** if it doesn't exist (e.g., `mkdir -p thoughts/<id>/`).
 
 6. **Write `task.md`** — a clean 2-3 sentence description of what's being built and why. This file persists the task context for later phases so the user doesn't have to re-explain it.
 
@@ -56,9 +61,9 @@ The user provides a task description, ticket file path, or issue reference.
 
 ## Output
 
-- Directory created: `thoughts/qrspi/<id>/`
-- Files written: `thoughts/qrspi/<id>/task.md` and `thoughts/qrspi/<id>/questions.md`
-- Tell the user: "Next: run `/qrspi/2_research thoughts/qrspi/<id>/`"
+- Directory created: `thoughts/<id>/`
+- Files written: `thoughts/<id>/task.md` and `thoughts/<id>/questions.md`
+- Tell the user: "Next: run `/research thoughts/<id>/`", unless `route.md` recommended a shorter path.
 
 ## Rules
 
@@ -66,4 +71,4 @@ The user provides a task description, ticket file path, or issue reference.
 - `task.md` is a brief, honest description of the goal — it will be read by later phases but NOT by Research
 - The researcher who reads these questions should have no idea what feature is being built
 - Each question should target a different area or concern
-- If the task is too simple for 3 questions, tell the user — QRSPI is for complex tasks
+- If the task is too simple for 3 questions, tell the user — the full workflow is for complex tasks

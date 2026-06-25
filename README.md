@@ -1,6 +1,6 @@
-# QRSPI
+# QRSPI Command Kit
 
-**Question, Research, Structure, Plan, Implement** — an 8-phase workflow for Claude Code that breaks complex coding tasks into focused prompts with clear artifacts between each step.
+**Composable Claude Code commands for routing, research, design, planning, implementation, and review.** Use one command when that is enough, or chain them into a QRSPI-style workflow for complex coding tasks.
 
 ## The Problem
 
@@ -11,29 +11,30 @@ The original [Research-Plan-Implement](https://github.com/humanlayer/advanced-co
 
 ## The Solution
 
-Split research into 2 phases, planning into 3 phases, and implementation into 3 phases. Each phase:
+Split the work into standalone commands. Each command:
 
 - Runs in its own context window
-- Reads only its input artifacts (not the full conversation history)
+- Reads only the input artifacts it needs, not the full conversation history
 - Produces a markdown file that feeds the next phase
 - Stays under 40 instructions
 
 ```
-Question → Research → Design → Structure → Plan → Worktree → Implement → PR
+Route → Question → Research → Design → Structure → Plan → Worktree → Implement → PR
 ```
 
-| # | Phase | What it does | Output |
-|---|-------|-------------|--------|
-| 1 | **Question** | Decomposes the task into neutral research questions | `task.md` + `questions.md` |
-| 2 | **Research** | Answers questions with facts only — never sees the task | `research.md` (~300 lines) |
-| 3 | **Design** | Aligns on approach with the user — MUST ask questions first | `design.md` (~200 lines) |
-| 4 | **Structure** | Breaks design into vertical slices with test checkpoints | `structure.md` (~2 pages) |
-| 5 | **Plan** | Tactical implementation details for the agent | `plan.md` |
-| 6 | **Worktree** | Creates isolated git worktree for implementation | git worktree |
-| 7 | **Implement** | Executes plan phase-by-phase, commits after each | code changes |
-| 8 | **PR** | Creates pull request grounded in the design document | GitHub PR |
+| Command | What it does | Output |
+|---|---|---|
+| `/route` | Categorizes the task and selects model + effort | `route.md` |
+| `/question` | Decomposes the task into neutral research questions | `task.md` + `questions.md` |
+| `/research` | Answers questions with facts only — never sees the task | `research.md` (~300 lines) |
+| `/design` | Aligns on approach with the user — MUST ask questions first | `design.md` (~200 lines) |
+| `/structure` | Breaks design into vertical slices with test checkpoints | `structure.md` (~2 pages) |
+| `/plan` | Creates tactical implementation details for the agent | `plan.md` |
+| `/worktree` | Creates isolated git worktree for implementation | git worktree |
+| `/implement` | Executes plan phase-by-phase, commits after each | code changes |
+| `/pr` | Creates pull request grounded in the design document | GitHub PR |
 
-The human reviews Design (~200 lines) and Structure (~2 pages) — not a 1000-line plan. By the time code is written, alignment has already happened.
+The commands are top-level on purpose. You can run `/route` and stop, run `/research` with hand-written questions, start at `/design`, or go all the way through the full chain. The human reviews Design (~200 lines) and Structure (~2 pages) — not a 1000-line plan.
 
 ## Install
 
@@ -41,61 +42,95 @@ The human reviews Design (~200 lines) and Structure (~2 pages) — not a 1000-li
 
 ```bash
 # From your project root
-git clone https://github.com/matanshavit/qrspi /tmp/qrspi
+git clone https://github.com/greg0x/qrspi-demo /tmp/command-kit
 
 # Copy commands
-mkdir -p .claude/commands/qrspi
-cp /tmp/qrspi/.claude/commands/qrspi/*.md .claude/commands/qrspi/
+mkdir -p .claude/commands
+cp /tmp/command-kit/.claude/commands/*.md .claude/commands/
 
 # Copy required agents
 mkdir -p .claude/agents
-cp /tmp/qrspi/.claude/agents/*.md .claude/agents/
+cp /tmp/command-kit/.claude/agents/*.md .claude/agents/
 
 # Clean up
-rm -rf /tmp/qrspi
+rm -rf /tmp/command-kit
 ```
 
 ### Manual install
 
-1. Copy the contents of `.claude/commands/qrspi/` into your project's `.claude/commands/qrspi/`
+1. Copy the contents of `.claude/commands/` into your project's `.claude/commands/`
 2. Copy the contents of `.claude/agents/` into your project's `.claude/agents/`
 3. Both directories must exist at the root of your project
 
 ### Verify installation
 
-Open Claude Code in your project and type `/qrspi/` — you should see all 8 commands in autocomplete.
+Open Claude Code in your project and type `/route`, `/question`, or `/research` — you should see the top-level commands in autocomplete.
+
+### Workshop runner: `cctt` + Legroom
+
+For the workshop, run these commands through `cctt`, not `cot`. `cctt` points Claude Code at the local Legroom proxy (`ANTHROPIC_BASE_URL`, default `http://127.0.0.1:8787`) and uses Claude Code gateway model discovery.
+
+Use Legroom's Claude Code aliases, not raw Keystone model names:
+
+| Situation | Model alias |
+|---|---|
+| Default human coding: plans, debugging, implementation | `claude-legroom-gemini-3-flash-preview` |
+| Fast ROI: repo triage, exploration, small edits | `claude-legroom-gemini-3-1-flash-lite` |
+| Escalation/review: architecture, risky debugging, final review | `claude-legroom-gemini-3-5-flash` |
+| Bulk cheap: summaries, extraction, classification, low-risk scans | `claude-legroom-gemini-2-5-flash-lite` |
+
+This demo pins explicit `model:` fields to the cheapest Gemini route that is likely good for the command:
+
+| Command or agent | Pinned model |
+|---|---|
+| `/route`, `/question`, `/research` | `claude-legroom-gemini-3-1-flash-lite` |
+| `codebase-locator` | `claude-legroom-gemini-2-5-flash-lite` |
+| `codebase-analyzer`, `codebase-pattern-finder` | `claude-legroom-gemini-3-1-flash-lite` |
+| `web-search-researcher`, `/design`, `/structure`, `/plan` | `claude-legroom-gemini-3-flash-preview` |
+
+Example:
+
+```bash
+LEGROOM_PROXY_MODEL=claude-legroom-gemini-3-flash-preview cctt
+```
+
+Then run the top-level slash commands inside Claude Code.
 
 ## Usage
 
 ```bash
-# Start with a task description, ticket file, or issue
-/qrspi/1_question "Add rate limiting to the API endpoints"
+# Optional: choose route, model, effort, and workflow depth
+/route "Add rate limiting to the API endpoints"
+
+# Start with a task description, ticket file, issue, or routed artifact directory
+/question "Add rate limiting to the API endpoints"
 
 # Each command tells you what to run next
-/qrspi/2_research thoughts/qrspi/2026-03-29-rate-limiting/
-/qrspi/3_design thoughts/qrspi/2026-03-29-rate-limiting/
-/qrspi/4_structure thoughts/qrspi/2026-03-29-rate-limiting/
-/qrspi/5_plan thoughts/qrspi/2026-03-29-rate-limiting/
+/research thoughts/2026-03-29-rate-limiting/
+/design thoughts/2026-03-29-rate-limiting/
+/structure thoughts/2026-03-29-rate-limiting/
+/plan thoughts/2026-03-29-rate-limiting/
 
 # Optional: isolate work in a worktree
-/qrspi/6_worktree thoughts/qrspi/2026-03-29-rate-limiting/
+/worktree thoughts/2026-03-29-rate-limiting/
 
 # Implement and ship
-/qrspi/7_implement thoughts/qrspi/2026-03-29-rate-limiting/
-/qrspi/8_pr thoughts/qrspi/2026-03-29-rate-limiting/
+/implement thoughts/2026-03-29-rate-limiting/
+/pr thoughts/2026-03-29-rate-limiting/
 ```
 
 Start a fresh context window between phases for best results.
 
-### When to use QRSPI
+### Composable Usage
 
-Use it for complex, multi-file changes in existing codebases — the kind where getting the design wrong is expensive. Not every task needs all 8 phases:
+Use the full flow for complex, multi-file changes in existing codebases — the kind where getting the design wrong is expensive. For smaller work, compose only the commands you need:
 
-- **Simple bug fix**: Skip to `/qrspi/7_implement` with a hand-written plan
-- **Small feature**: Start at `/qrspi/3_design` if you already know the codebase
-- **Complex feature**: Run all 8 phases
+- **Simple bug fix**: Skip to `/implement` with a hand-written plan
+- **Small feature**: Start at `/design` if you already know the codebase
+- **Complex feature**: Run the full chain from `/question` through `/pr`
+- **Unclear model or workflow depth**: Start with `/route`
 
-If a task can be described in one sentence and touches fewer than 3 files, QRSPI is overkill.
+If a task can be described in one sentence and touches fewer than 3 files, the full workflow is overkill.
 
 ## How It Works
 
@@ -104,7 +139,8 @@ If a task can be described in one sentence and touches fewer than 3 files, QRSPI
 All artifacts for a task live in one directory:
 
 ```
-thoughts/qrspi/<task-id>/
+thoughts/<task-id>/
+├── route.md       # Task category, selected model, effort, next command
 ├── task.md         # What we're building (hidden from Research to prevent bias)
 ├── questions.md    # Neutral research questions
 ├── research.md     # Factual findings with file:line references
@@ -140,7 +176,7 @@ Small mismatches during implementation should be adapted in place. Fundamental i
 
 ## Required agents
 
-QRSPI prompts reference these agents by name. They're included in `.claude/agents/`:
+These commands reference these agents by name. They're included in `.claude/agents/`:
 
 | Agent | Purpose | Tools |
 |-------|---------|-------|
@@ -161,15 +197,15 @@ All agents operate as documentarians — they describe what exists, never sugges
 │   ├── codebase-pattern-finder.md
 │   └── web-search-researcher.md
 └── commands/
-    └── qrspi/
-        ├── 1_question.md
-        ├── 2_research.md
-        ├── 3_design.md
-        ├── 4_structure.md
-        ├── 5_plan.md
-        ├── 6_worktree.md
-        ├── 7_implement.md
-        └── 8_pr.md
+    ├── route.md
+    ├── question.md
+    ├── research.md
+    ├── design.md
+    ├── structure.md
+    ├── plan.md
+    ├── worktree.md
+    ├── implement.md
+    └── pr.md
 ```
 
 ## References

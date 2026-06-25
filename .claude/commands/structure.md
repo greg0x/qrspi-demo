@@ -1,7 +1,7 @@
 ---
 description: Structure outline — vertical slices with test checkpoints
-model: opus
-argument-hint: "thoughts/qrspi/<id>/"
+model: claude-legroom-gemini-3-flash-preview
+argument-hint: "thoughts/<id>/"
 ---
 
 # Structure — How Do We Get There?
@@ -70,8 +70,8 @@ Read `$ARGUMENTS/design.md` and `$ARGUMENTS/research.md`.
 
 ## Output
 
-- File written: `thoughts/qrspi/<id>/structure.md`
-- Tell the user: "Next: run `/qrspi/5_plan thoughts/qrspi/<id>/`"
+- File written: `thoughts/<id>/structure.md`
+- Tell the user: "Next: run `/plan thoughts/<id>/`"
 
 ## Rules
 
@@ -83,4 +83,4 @@ Read `$ARGUMENTS/design.md` and `$ARGUMENTS/research.md`.
 
 ## When to Go Back
 
-If you discover the design missed a critical constraint or made a decision based on incorrect assumptions about the codebase, tell the user and suggest re-running `/qrspi/3_design` rather than working around a flawed design.
+If you discover the design missed a critical constraint or made a decision based on incorrect assumptions about the codebase, tell the user and suggest re-running `/design` rather than working around a flawed design.
