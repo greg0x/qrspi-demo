@@ -38,7 +38,31 @@ The commands are top-level on purpose. You can run `/route` and stop, run `/rese
 
 ## Install
 
-### Quick install (copy into your project)
+### Skills install
+
+Install the reusable skill with the standard `skills` CLI:
+
+```bash
+npx skills add https://github.com/greg0x/qrspi-demo --skill qrspi -a claude-code
+```
+
+For non-interactive project install:
+
+```bash
+npx skills add https://github.com/greg0x/qrspi-demo --skill qrspi -a claude-code -y
+```
+
+This installs the `qrspi` skill into Claude Code's skill directory, usually `.claude/skills/qrspi/` for project installs.
+
+To also register the top-level slash commands (`/route`, `/question`, `/research`, ...), run the bundled command installer from the project root:
+
+```bash
+node .claude/skills/qrspi/scripts/install-command-kit.mjs
+```
+
+`npx skills add` installs skills; Claude Code slash commands are separate files under `.claude/commands/`.
+
+### Direct command install
 
 ```bash
 # From your project root
