@@ -40,27 +40,21 @@ The commands are top-level on purpose. You can run `/route` and stop, run `/rese
 
 ### Skills install
 
-Install the reusable skill with the standard `skills` CLI:
-
-```bash
-npx skills add https://github.com/greg0x/qrspi-demo --skill qrspi -a claude-code
-```
-
-For non-interactive project install:
+From the project where you want to use the kit, run two commands:
 
 ```bash
 npx skills add https://github.com/greg0x/qrspi-demo --skill qrspi -a claude-code -y
-```
-
-This installs the `qrspi` skill into Claude Code's skill directory, usually `.claude/skills/qrspi/` for project installs.
-
-To also register the top-level slash commands (`/route`, `/question`, `/research`, ...), run the bundled command installer from the project root:
-
-```bash
 node .claude/skills/qrspi/scripts/install-command-kit.mjs
 ```
 
-`npx skills add` installs skills; Claude Code slash commands are separate files under `.claude/commands/`.
+If your global npm registry points at a private registry that does not proxy the public `skills` package, override npm for this one command:
+
+```bash
+NPM_CONFIG_REGISTRY=https://registry.npmjs.org NPM_CONFIG_USERCONFIG=/dev/null npx --yes skills@latest add https://github.com/greg0x/qrspi-demo --skill qrspi -a claude-code -y
+node .claude/skills/qrspi/scripts/install-command-kit.mjs
+```
+
+The first command installs the `qrspi` skill into `.claude/skills/qrspi/`. The second command registers the top-level slash commands (`/route`, `/question`, `/research`, ...), because Claude Code slash commands are separate files under `.claude/commands/`.
 
 ### Direct command install
 
